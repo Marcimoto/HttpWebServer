@@ -207,4 +207,9 @@ public class Server {
             connection.close();
         }
     }
+
+    // Probably a bad idea!!!
+    protected void stopServer() {
+        System.exit(0);
+    }
 }
