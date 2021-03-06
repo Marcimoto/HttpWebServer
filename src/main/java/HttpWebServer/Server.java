@@ -5,7 +5,6 @@ import java.net.*;
 import java.nio.file.*;
 
 public class Server {
-
     private int port;
 
     public static void main(String[] args) {
@@ -14,36 +13,44 @@ public class Server {
 
     public Server() {
         this.port = 8080;
-        ServerSocket serverSocket = null;
-
-        try {
-            serverSocket = new ServerSocket(port);
-            while (true) {
-                System.out.println("Server is listening for requests...");
-                Socket connection = serverSocket.accept();
-                new Thread(new ClientHandler(connection)).start();
-            }
-        } catch (IOException e) {
-            // catch exceptions and explain a log, maybe something better than an
-            // IOException
-            e.printStackTrace();
-        } finally {
-            try {
-                serverSocket.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-
+        new Thread(new BackgroundServer(port)).start();
     }
 
     public int getPort() {
         return this.port;
     }
 
-    // Bad idea!?
-    protected void stopServer() {
-        System.exit(0);
+    static class BackgroundServer implements Runnable {
+        private int port;
+
+        public BackgroundServer(int port) {
+            this.port = port;
+        }
+
+        @Override
+        public void run() {
+            this.port = 8080;
+            ServerSocket serverSocket = null;
+
+            try {
+                serverSocket = new ServerSocket(port);
+                while (true) {
+                    System.out.println("Server is listening for requests...");
+                    Socket connection = serverSocket.accept();
+                    new Thread(new ClientHandler(connection)).start();
+                }
+            } catch (IOException e) {
+                // catch exceptions and explain a log, maybe something better than an
+                // IOException
+                e.printStackTrace();
+            } finally {
+                try {
+                    serverSocket.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
     }
 
     static class ClientHandler implements Runnable {

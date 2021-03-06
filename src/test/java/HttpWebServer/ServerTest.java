@@ -25,43 +25,25 @@ import java.util.*;
 public class ServerTest {
 
     Server server = null;
+    String url = null;
+    HttpClient client;
 
     @BeforeAll
     void setUp() {
         this.server = new Server();
+        url = String.format("http://localhost:%d/", server.getPort());
+        client = HttpClient.newBuilder().proxy(ProxySelector.getDefault()).build();
     }
-
-    // @AfterAll
-    // void tearDown() {
-    // server.stopServer();
-    // server = null;
-    // }
 
     @Test
-    void test() {
-        assertTrue(true);
+    void getRootTest() throws IOException, InterruptedException {
+
+        HttpRequest request = HttpRequest.newBuilder().uri(URI.create(url)).header("Content-Type", "txt/html")
+                .version(Version.HTTP_1_1).GET().build();
+
+        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+        assertEquals(200, response.statusCode());
     }
-
-    // @Test
-    // void successfulGetRootTest() throws IOException, InterruptedException {
-    // System.out.println("Running test: successfulGetRootTest()");
-    // String url = String.format("http://localhost:%d/", server.getPort());
-
-    // HttpRequest request =
-    // HttpRequest.newBuilder().uri(URI.create(url)).header("Content-Type",
-    // "txt/html")
-    // .version(Version.HTTP_1_1).GET().build();
-
-    // HttpClient client =
-    // HttpClient.newBuilder().proxy(ProxySelector.getDefault()).build();
-
-    // HttpResponse<String> response = client.send(request,
-    // HttpResponse.BodyHandlers.ofString());
-    // System.out.println(response.statusCode());
-    // System.out.println(response.headers());
-    // System.out.println(response.body());
-    // assertEquals(200, response.statusCode());
-    // }
 
     // @Test
     // void successfulGetDirectoryTest() {
