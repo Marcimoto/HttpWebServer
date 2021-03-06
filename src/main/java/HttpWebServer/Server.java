@@ -7,10 +7,6 @@ import java.nio.file.*;
 public class Server {
     private int port;
 
-    public static void main(String[] args) {
-        new Server();
-    }
-
     public Server() {
         this.port = 8080;
         new Thread(new BackgroundServer(port)).start();
@@ -18,6 +14,10 @@ public class Server {
 
     public int getPort() {
         return this.port;
+    }
+
+    public static void main(String[] args) {
+        new Server();
     }
 
     static class BackgroundServer implements Runnable {
@@ -87,7 +87,7 @@ public class Server {
                 }
 
                 if (!method.equals("GET") && !method.equals("HEAD")) {
-                    sendMethodNotFound(httpVersion);
+                    sendMethodNotAllowed(httpVersion);
                     return;
                 }
 
@@ -165,7 +165,7 @@ public class Server {
             return header.toString().getBytes();
         }
 
-        private void sendMethodNotFound(String httpVersion) throws IOException {
+        private void sendMethodNotAllowed(String httpVersion) throws IOException {
             StringBuilder msg = new StringBuilder();
             msg.append(httpVersion + " 405 Not found\n");
             msg.append("Server: Simple HTTP web server\n");
