@@ -9,12 +9,16 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 
 import java.io.IOException;
-import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
+import java.net.*;
+import java.net.http.*;
+import java.net.http.HttpClient.Redirect;
+import java.net.http.HttpClient.Version;
+import java.net.http.HttpRequest.BodyPublishers;
 import java.net.http.HttpResponse.BodyHandlers;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Paths;
+import java.time.Duration;
 import java.util.*;
 
 public class ServerTest {
@@ -23,7 +27,7 @@ public class ServerTest {
 
     @BeforeAll
     void setUp() {
-        server = new Server();
+        this.server = new Server();
     }
 
     @AfterAll
@@ -33,9 +37,26 @@ public class ServerTest {
     }
 
     @Test
-    void successfulGetTest() {
+    void successfulGetRootTest() throws IOException, InterruptedException {
+        String url = String.format("http://localhost:%d/", server.getPort());
 
+        HttpRequest request = HttpRequest.newBuilder().uri(URI.create(url)).header("Content-Type", "txt/html")
+                .version(Version.HTTP_1_1).GET().build();
+
+        HttpClient client = HttpClient.newBuilder().proxy(ProxySelector.getDefault()).build();
+
+        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+        System.out.println(response.statusCode());
+        System.out.println(response.headers());
+        System.out.println(response.body());
+        assertEquals(200, response.statusCode());
     }
+
+    // @Test
+    // void successfulGetDirectoryTest() {
+    // String baseURL = String.format("http://localhost:%d/");
+
+    // }
 
     /**
      * A helper method to simulate HTTP GET requests to urls.

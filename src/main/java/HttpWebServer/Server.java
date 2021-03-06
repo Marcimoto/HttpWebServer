@@ -6,8 +6,10 @@ import java.nio.file.*;
 
 public class Server {
 
+    private static int port;
+
     public static void main(String[] args) throws UnknownHostException, IOException {
-        int port = 8080;
+        port = 8080;
         ServerSocket serverSocket = null;
 
         try {
@@ -21,6 +23,10 @@ public class Server {
         } finally {
             serverSocket.close();
         }
+    }
+
+    public static int getPort() {
+        return port;
     }
 
     static class ClientHandler implements Runnable {
@@ -42,6 +48,7 @@ public class Server {
                     return;
                 }
 
+                // What if no httpVersion is given?? think about default behavior!
                 String[] request = line.split(" ");
                 String method = "", resource = "", httpVersion = "";
 
@@ -208,7 +215,7 @@ public class Server {
         }
     }
 
-    // Probably a bad idea!!!
+    // Bad idea!?
     protected void stopServer() {
         System.exit(0);
     }
