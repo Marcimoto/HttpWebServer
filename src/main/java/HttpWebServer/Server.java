@@ -6,10 +6,14 @@ import java.nio.file.*;
 
 public class Server {
 
-    private static int port;
+    private int port;
 
-    public static void main(String[] args) throws UnknownHostException, IOException {
-        port = 8080;
+    public static void main(String[] args) {
+        new Server();
+    }
+
+    public Server() {
+        this.port = 8080;
         ServerSocket serverSocket = null;
 
         try {
@@ -19,14 +23,27 @@ public class Server {
                 Socket connection = serverSocket.accept();
                 new Thread(new ClientHandler(connection)).start();
             }
-            // catch exceptions and explain a log
+        } catch (IOException e) {
+            // catch exceptions and explain a log, maybe something better than an
+            // IOException
+            e.printStackTrace();
         } finally {
-            serverSocket.close();
+            try {
+                serverSocket.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
+
     }
 
-    public static int getPort() {
-        return port;
+    public int getPort() {
+        return this.port;
+    }
+
+    // Bad idea!?
+    protected void stopServer() {
+        System.exit(0);
     }
 
     static class ClientHandler implements Runnable {
@@ -213,10 +230,5 @@ public class Server {
             out.flush();
             connection.close();
         }
-    }
-
-    // Bad idea!?
-    protected void stopServer() {
-        System.exit(0);
     }
 }
