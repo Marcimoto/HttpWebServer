@@ -119,26 +119,6 @@ public class ServerTest {
         assertEquals(404, response.statusCode());
     }
 
-    @Test
-    void methodNotAllowedTest() {
-        HttpClient client = HttpClient.newHttpClient();
-        HttpResponse<Void> response = null;
-        try {
-            HttpRequest request = HttpRequest.newBuilder()
-                                .uri(URI.create(baseURL))
-                                .header("Content-Type", "text/plain")
-                                .version(Version.HTTP_1_1)
-                                .PUT(BodyPublishers.ofFile(Paths.get("src/test/resources/existing.txt")))
-                                .build();
-            do {
-                response = client.send(request, HttpResponse.BodyHandlers.discarding());
-            } while (response == null);
-        } catch (IOException | InterruptedException e) {
-            e.printStackTrace();
-        }
-        assertEquals(405, response.statusCode());
-    }
-
     /**
      * A helper method which sends the request to the server 
      * and returns the response to the calling method.
