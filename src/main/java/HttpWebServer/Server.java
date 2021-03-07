@@ -1,10 +1,16 @@
-package HttpWebServer;
+package httpwebserver;
 
-import java.io.*;
-import java.net.*;
-import java.nio.file.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.nio.file.Files;
 
 public class Server {
+
     private int port;
 
     public Server() {
@@ -21,6 +27,7 @@ public class Server {
     }
 
     static class BackgroundServer implements Runnable {
+
         private int port;
 
         public BackgroundServer(int port) {
@@ -29,7 +36,8 @@ public class Server {
 
         @Override
         public void run() {
-            this.port = 8080;
+
+            this.port = 8080; // default port
             ServerSocket serverSocket = null;
 
             try {
@@ -40,8 +48,7 @@ public class Server {
                     new Thread(new ClientHandler(connection)).start();
                 }
             } catch (IOException e) {
-                // catch exceptions and explain a log, maybe something better than an
-                // IOException
+                // Here: Create a log of the exception and the state of the system
                 e.printStackTrace();
             } finally {
                 try {
@@ -54,6 +61,7 @@ public class Server {
     }
 
     static class ClientHandler implements Runnable {
+
         private Socket connection;
 
         public ClientHandler(Socket connection) {
@@ -66,16 +74,17 @@ public class Server {
                 InputStreamReader inReader = new InputStreamReader(connection.getInputStream());
                 BufferedReader reader = new BufferedReader(inReader);
                 String line = reader.readLine();
-
+                // Reply with a 400 Bad Request, if request line does not exit
                 if (line == null || line.isEmpty()) {
                     sendBadRequest();
                     return;
                 }
 
-                // What if no httpVersion is given?? think about default behavior!
                 String[] request = line.split(" ");
-                String method = "", resource = "", httpVersion = "";
-
+                String method = "";
+                String resource = "";
+                String httpVersion = "";
+                // Reply with default HTTP response, if request line is not well formatted
                 if (request.length != 3) {
                     method = "GET";
                     resource = "/";
@@ -85,20 +94,20 @@ public class Server {
                     resource = request[1].trim();
                     httpVersion = request[2].trim();
                 }
-
+                // Reply with 405 Method Not Allowed, if not GET or HEAD request
                 if (!method.equals("GET") && !method.equals("HEAD")) {
                     sendMethodNotAllowed(httpVersion);
                     return;
                 }
 
                 File file = new File("." + resource);
-
+                // Reply with 404 File Not Found, if file does not exit
                 if (!file.exists()) {
                     sendFileNotFound(httpVersion, file);
                     return;
                 }
 
-                // Process request
+                // Process request, check if file or directory is requested
                 byte[] msgBody = null;
                 if (file.isFile()) {
                     msgBody = Files.readAllBytes(file.toPath());
@@ -108,7 +117,7 @@ public class Server {
 
                 byte[] msgHeader = getResponseHeader(httpVersion, file, msgBody);
 
-                // Send the HTTP response message
+                // Send the HTTP response message, can be extended with cases for POST, PUT...
                 switch (method) {
                     case "GET":
                         sendResponse(msgHeader, msgBody);
@@ -116,15 +125,23 @@ public class Server {
                     case "HEAD":
                         sendResponse(msgHeader);
                         break;
+                    default:
                 }
-
             } catch (IOException e) {
+                // Here: Create a log of the exception and the state of the system
                 try {
+                    // In case of an exception respond with a 500 Internal Server Error
                     sendServerError();
                 } catch (IOException e1) {
                     e1.printStackTrace();
                 }
                 e.printStackTrace();
+            } finally {
+                try {
+                    connection.close();
+                } catch (IOException e1) {
+                    e1.printStackTrace();
+                }
             }
         }
 
@@ -167,7 +184,7 @@ public class Server {
 
         private void sendMethodNotAllowed(String httpVersion) throws IOException {
             StringBuilder msg = new StringBuilder();
-            msg.append(httpVersion + " 405 Not found\n");
+            msg.append(httpVersion + " 405 Method Not Allowed\n");
             msg.append("Server: Simple HTTP web server\n");
             msg.append("Content-Type: text/html; charset=utf-8\n");
             msg.append("Allow: GET, HEAD\n");
