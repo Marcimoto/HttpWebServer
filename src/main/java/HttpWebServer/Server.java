@@ -9,12 +9,23 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.file.Files;
 
+/**
+ * Starts a server instance in a thread. 
+ * In case no port is specified the default port is 8080.
+ * 
+ * @author Marcel Unkauf
+ */
 public class Server {
 
     private int port;
 
     public Server() {
         this.port = 8080;
+        new Thread(new BackgroundServer(port)).start();
+    }
+
+    public Server(int port) {
+        this.port = port;
         new Thread(new BackgroundServer(port)).start();
     }
 
@@ -26,6 +37,12 @@ public class Server {
         new Server();
     }
 
+    /**
+     * Inner class of Server which creates and starts a server instance in a thread. 
+     * BackgroundServer itself creates and starts a new thread for each client request.
+     * 
+     * @param port The port on which the server will listen for requests.
+     */
     static class BackgroundServer implements Runnable {
 
         private int port;
@@ -37,7 +54,6 @@ public class Server {
         @Override
         public void run() {
 
-            this.port = 8080; // default port
             ServerSocket serverSocket = null;
 
             try {
@@ -60,6 +76,12 @@ public class Server {
         }
     }
 
+    /**
+     * Inner class of Server which processes a client request. Instances of
+     * ClientHandler are created and started by BackgroundServer instances.
+     * 
+     * @param connection The socket which is connected to the client.
+     */
     static class ClientHandler implements Runnable {
 
         private Socket connection;
@@ -74,7 +96,7 @@ public class Server {
                 InputStreamReader inReader = new InputStreamReader(connection.getInputStream());
                 BufferedReader reader = new BufferedReader(inReader);
                 String line = reader.readLine();
-                // Reply with a 400 Bad Request, if request line does not exit
+                // Reply with a 400 Bad Request, if the request line does not exit
                 if (line == null || line.isEmpty()) {
                     sendBadRequest();
                     return;
@@ -84,7 +106,7 @@ public class Server {
                 String method = "";
                 String resource = "";
                 String httpVersion = "";
-                // Reply with default HTTP response, if request line is not well formatted
+                // Reply with default HTTP response, if the request line is not well formatted
                 if (request.length != 3) {
                     method = "GET";
                     resource = "/";
@@ -94,20 +116,20 @@ public class Server {
                     resource = request[1].trim();
                     httpVersion = request[2].trim();
                 }
-                // Reply with 405 Method Not Allowed, if not GET or HEAD request
+                // Reply with 405 Method Not Allowed, if not a GET or a HEAD request
                 if (!method.equals("GET") && !method.equals("HEAD")) {
                     sendMethodNotAllowed(httpVersion);
                     return;
                 }
 
                 File file = new File("." + resource);
-                // Reply with 404 File Not Found, if file does not exit
+                // Reply with 404 File Not Found, if the requested file does not exit
                 if (!file.exists()) {
                     sendFileNotFound(httpVersion, file);
                     return;
                 }
 
-                // Process request, check if file or directory is requested
+                // Process the request, check if a file or a directory is requested
                 byte[] msgBody = null;
                 if (file.isFile()) {
                     msgBody = Files.readAllBytes(file.toPath());
@@ -117,7 +139,7 @@ public class Server {
 
                 byte[] msgHeader = getResponseHeader(httpVersion, file, msgBody);
 
-                // Send the HTTP response message, can be extended with cases for POST, PUT...
+                // Send the HTTP response message, it can be extended with cases for POST, PUT...
                 switch (method) {
                     case "GET":
                         sendResponse(msgHeader, msgBody);
@@ -145,7 +167,13 @@ public class Server {
             }
         }
 
-        private byte[] getDirectoryContent(File file) {
+        /**
+         * Retrieves the content of the directory and builds a HTML document from it.
+         * 
+         * @param directory The directory specified in the http request.
+         * @return Returns a byte array which represents the HTML document.
+         */
+        private byte[] getDirectoryContent(File directory) {
             StringBuilder body = new StringBuilder();
             body.append("<!DOCTYPE html>\n");
             body.append("<html>\n");
@@ -155,7 +183,7 @@ public class Server {
             body.append("<body>\n");
             body.append("<h1>Simple Web Server</h1>");
 
-            File[] files = file.listFiles();
+            File[] files = directory.listFiles();
             for (int i = 0; i < files.length; i++) {
                 String name = files[i].getName();
                 if (files[i].isDirectory())
@@ -171,6 +199,15 @@ public class Server {
             return body.toString().getBytes();
         }
 
+        /**
+         * Computes the header of the HTTP response message.
+         * 
+         * @param httpVersion The HTTP version of the request.
+         * @param file The requested file.
+         * @param msgBody The body of the response message as byte array.
+         * @return Returns a byte array which represents the header of the HTTP response.
+         * @throws Throws an IOException if an I/O error occurs when reading the file.
+         */
         private byte[] getResponseHeader(String httpVersion, File file, byte[] msgBody) throws IOException {
             StringBuilder header = new StringBuilder();
             header.append(httpVersion + " 200 OK\n");
@@ -182,6 +219,13 @@ public class Server {
             return header.toString().getBytes();
         }
 
+        /**
+         * Sends a "405 Method Not Allowed" HTTP response. 
+         * The content of the message is a HTML document which represents the error.
+         * 
+         * @param httpVersion The HTTP version of the request.
+         * @throws Throws an IOException if an I/O error occurs when sending the HTTP response.
+         */
         private void sendMethodNotAllowed(String httpVersion) throws IOException {
             StringBuilder msg = new StringBuilder();
             msg.append(httpVersion + " 405 Method Not Allowed\n");
@@ -197,6 +241,14 @@ public class Server {
             sendResponse(msg.toString().getBytes());
         }
 
+        /**
+         * Sends a "404 File Not Found" HTTP response. 
+         * The content of the message is a HTML document which represents the error.
+         * 
+         * @param httpVersion The HTTP version of the request.
+         * @param file The requested file.
+         * @throws Throws an IOException if an I/O error occurs when sending the HTTP response.
+         */
         private void sendFileNotFound(String httpVersion, File file) throws IOException {
             StringBuilder msg = new StringBuilder();
             msg.append(httpVersion + " 404 Not found\n");
@@ -212,6 +264,12 @@ public class Server {
             sendResponse(msg.toString().getBytes());
         }
 
+        /**
+         * Sends a "500 Internal Server Error" HTTP response.
+         * The content of the message is a HTML document which represents the error.
+         * 
+         * @throws Throws an IOException if an I/O error occurs when sending the HTTP response.
+         */
         private void sendServerError() throws IOException {
             StringBuilder msg = new StringBuilder();
             msg.append("HTTP/1.1 500 Internal Server Error\n");
@@ -226,6 +284,12 @@ public class Server {
             sendResponse(msg.toString().getBytes());
         }
 
+        /**
+         * Sends a "400 Bad Request" HTTP response.
+         * The content of the message is a HTML document which represents the error.
+         * 
+         * @throws Throws an IOException if an I/O error occurs when sending the HTTP response.
+         */
         private void sendBadRequest() throws IOException {
             StringBuilder msg = new StringBuilder();
             msg.append("HTTP/1.1 400 Bad Request\n");
@@ -240,6 +304,13 @@ public class Server {
             sendResponse(msg.toString().getBytes());
         }
 
+        /**
+         * Sends the response message to the client.
+         * 
+         * @param msg The message to be send.
+         * @throws Throws an IOException in case an error occurs when creating the output stream 
+         * or the socket is not connected
+         */
         private void sendResponse(byte[] msg) throws IOException {
             OutputStream out = connection.getOutputStream();
             out.write(msg);
@@ -247,6 +318,14 @@ public class Server {
             connection.close();
         }
 
+        /**
+         * Sends the response message to the client.
+         * 
+         * @param msgHeader The header of message to be send.
+         * @param msgBody The body of message to be send.
+         * @throws Throws an IOException in case an error occurs when creating the output stream 
+         * or the socket is not connected
+         */
         private void sendResponse(byte[] msgHeader, byte[] msgBody) throws IOException {
             OutputStream out = connection.getOutputStream();
             out.write(msgHeader);
