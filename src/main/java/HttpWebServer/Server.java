@@ -10,8 +10,8 @@ import java.net.Socket;
 import java.nio.file.Files;
 
 /**
- * Starts a server instance in a thread. 
- * In case no port is specified the default port is 8080.
+ * Creates and starts a BackgroundServer instance in a thread. 
+ * In case no port is specified, the default port is 8080.
  * 
  * @author Marcel Unkauf
  */
