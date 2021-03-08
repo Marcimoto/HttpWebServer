@@ -38,7 +38,7 @@ public class Server {
     }
 
     /**
-     * Inner class of Server which creates and starts a server instance in a thread. 
+     * A server instance which runs in a thread. 
      * BackgroundServer itself creates and starts a new thread for each client request.
      * 
      * @param port The port on which the server will listen for requests.
@@ -77,7 +77,7 @@ public class Server {
     }
 
     /**
-     * Inner class of Server which processes a client request. Instances of
+     * ClientHandler processes a client request. Instances of
      * ClientHandler are created and started by BackgroundServer instances.
      * 
      * @param connection The socket which is connected to the client.
