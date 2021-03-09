@@ -5,14 +5,16 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.file.Files;
+import java.net.UnknownHostException;
 
 /**
- * Creates and starts a BackgroundServer instance in a thread. 
+ * Creates and starts a BackgroundServer instance in a thread.
  * In case no port is specified, the default port is 8080.
- * 
+ *
  * @author Marcel Unkauf
  */
 public class Server {
@@ -38,9 +40,9 @@ public class Server {
     }
 
     /**
-     * A server instance which runs in a thread. 
+     * A server instance which runs in a thread.
      * BackgroundServer itself creates and starts a new thread for each client request.
-     * 
+     *
      * @param port The port on which the server will listen for requests.
      */
     static class BackgroundServer implements Runnable {
@@ -79,7 +81,7 @@ public class Server {
     /**
      * ClientHandler processes a client request. Instances of
      * ClientHandler are created and started by BackgroundServer instances.
-     * 
+     *
      * @param connection The socket which is connected to the client.
      */
     static class ClientHandler implements Runnable {
@@ -114,6 +116,9 @@ public class Server {
                 } else {
                     method = request[0].trim();
                     resource = request[1].trim();
+                    if(resource.length() > 1) {
+                        resource = resource.substring(resource.indexOf("/", 1));
+                    }
                     httpVersion = request[2].trim();
                 }
                 // Reply with 405 Method Not Allowed, if not a GET or a HEAD request
@@ -169,7 +174,7 @@ public class Server {
 
         /**
          * Retrieves the content of the directory and builds a HTML document from it.
-         * 
+         *
          * @param directory The directory specified in the http request.
          * @return Returns a byte array which represents the HTML document.
          */
@@ -186,11 +191,17 @@ public class Server {
             File[] files = directory.listFiles();
             for (int i = 0; i < files.length; i++) {
                 String name = files[i].getName();
-                if (files[i].isDirectory())
-                    name = "/" + name;
-                String host = connection.getLocalSocketAddress().toString();
+                if (files[i].isDirectory()) {
+                  name = "/" + name;
+                }
+                String host = "";
+                try{
+                  host = InetAddress.getLocalHost().getHostAddress();
+                } catch(UnknownHostException e) {
+                  e.printStackTrace();
+                }
                 String path = "http:/" + host + "/" + files[i].getPath();
-                body.append("<li><a href=\"" + path + "\">" + name + "</a></li>\n");
+                body.append("<li><a href=" + path + ">" + name + "</a></li>\n");
             }
 
             body.append("</body>\n");
@@ -201,7 +212,7 @@ public class Server {
 
         /**
          * Computes the header of the HTTP response message.
-         * 
+         *
          * @param httpVersion The HTTP version of the request.
          * @param file The requested file.
          * @param msgBody The body of the response message as byte array.
@@ -220,9 +231,9 @@ public class Server {
         }
 
         /**
-         * Sends a "405 Method Not Allowed" HTTP response. 
+         * Sends a "405 Method Not Allowed" HTTP response.
          * The content of the message is a HTML document which represents the error.
-         * 
+         *
          * @param httpVersion The HTTP version of the request.
          * @throws Throws an IOException if an I/O error occurs when sending the HTTP response.
          */
@@ -242,9 +253,9 @@ public class Server {
         }
 
         /**
-         * Sends a "404 File Not Found" HTTP response. 
+         * Sends a "404 File Not Found" HTTP response.
          * The content of the message is a HTML document which represents the error.
-         * 
+         *
          * @param httpVersion The HTTP version of the request.
          * @param file The requested file.
          * @throws Throws an IOException if an I/O error occurs when sending the HTTP response.
@@ -267,7 +278,7 @@ public class Server {
         /**
          * Sends a "500 Internal Server Error" HTTP response.
          * The content of the message is a HTML document which represents the error.
-         * 
+         *
          * @throws Throws an IOException if an I/O error occurs when sending the HTTP response.
          */
         private void sendServerError() throws IOException {
@@ -287,7 +298,7 @@ public class Server {
         /**
          * Sends a "400 Bad Request" HTTP response.
          * The content of the message is a HTML document which represents the error.
-         * 
+         *
          * @throws Throws an IOException if an I/O error occurs when sending the HTTP response.
          */
         private void sendBadRequest() throws IOException {
@@ -306,9 +317,9 @@ public class Server {
 
         /**
          * Sends the response message to the client.
-         * 
+         *
          * @param msg The message to be send.
-         * @throws Throws an IOException in case an error occurs when creating the output stream 
+         * @throws Throws an IOException in case an error occurs when creating the output stream
          * or the socket is not connected
          */
         private void sendResponse(byte[] msg) throws IOException {
@@ -320,10 +331,10 @@ public class Server {
 
         /**
          * Sends the response message to the client.
-         * 
+         *
          * @param msgHeader The header of message to be send.
          * @param msgBody The body of message to be send.
-         * @throws Throws an IOException in case an error occurs when creating the output stream 
+         * @throws Throws an IOException in case an error occurs when creating the output stream
          * or the socket is not connected
          */
         private void sendResponse(byte[] msgHeader, byte[] msgBody) throws IOException {
