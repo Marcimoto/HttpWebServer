@@ -44,7 +44,7 @@ public class Server {
      *
      * @param port The port on which the server will listen for requests.
      */
-    static class BackgroundServer implements Runnable {
+    private class BackgroundServer implements Runnable {
 
         private int port;
 
@@ -83,7 +83,7 @@ public class Server {
      *
      * @param connection The socket which is connected to the client.
      */
-    static class ClientHandler implements Runnable {
+    private class ClientHandler implements Runnable {
 
         private Socket connection;
         private InputStream in;
