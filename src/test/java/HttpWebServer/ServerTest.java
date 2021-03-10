@@ -12,6 +12,8 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.net.http.HttpClient.Version;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 
 /**
  * A unit test which tests the basic functionalities of the Server class and its inner classes. 
@@ -25,7 +27,13 @@ public class ServerTest {
     @BeforeAll
     void setUp() {
         this.server = new Server();
-        this.baseURL = String.format("http://localhost:%d/", server.getPort());
+        String host = "";
+        try{
+            host = InetAddress.getLocalHost().getHostAddress();
+        } catch(UnknownHostException e) {
+            e.printStackTrace();
+        }
+        this.baseURL = String.format("http://%s:%d/", host, server.getPort());
     }
 
     @Test
@@ -44,7 +52,7 @@ public class ServerTest {
     @Test
     void successfulHeadRequestTest() {
         HttpRequest request = HttpRequest.newBuilder()
-                                .uri(URI.create(baseURL + "src/test/resources/existing.txt"))
+                                .uri(URI.create(baseURL + "192.168.1.198/src/test/resources/existing.txt"))
                                 .header("Content-Type", "text/plain")
                                 .version(Version.HTTP_1_1)
                                 .method("HEAD", HttpRequest.BodyPublishers.noBody())
@@ -57,7 +65,7 @@ public class ServerTest {
     @Test
     void unsuccessfulHeadRequestTest() {
         HttpRequest request = HttpRequest.newBuilder()
-                                .uri(URI.create(baseURL + "src/test/resources/notExisting.txt"))
+                                .uri(URI.create(baseURL + "192.168.1.198/src/test/resources/notExisting.txt"))
                                 .header("Content-Type", "text/plain")
                                 .version(Version.HTTP_1_1)
                                 .method("HEAD", HttpRequest.BodyPublishers.noBody())
@@ -70,7 +78,7 @@ public class ServerTest {
     @Test
     void successfulGetRequestFolderTest() {
         HttpRequest request = HttpRequest.newBuilder()
-                                .uri(URI.create(baseURL + "src/test/resources/existing/"))
+                                .uri(URI.create(baseURL + "192.168.1.198/src/test/resources/existing/"))
                                 .version(Version.HTTP_1_1)
                                 .GET()
                                 .build();
@@ -82,7 +90,7 @@ public class ServerTest {
     @Test
     void successfulGetRequestFileTest() {
         HttpRequest request = HttpRequest.newBuilder()
-                                .uri(URI.create(baseURL + "src/test/resources/existing.txt"))
+                                .uri(URI.create(baseURL + "192.168.1.198/src/test/resources/existing.txt"))
                                 .header("Content-Type", "text/plain")
                                 .version(Version.HTTP_1_1)
                                 .GET()
@@ -95,7 +103,7 @@ public class ServerTest {
     @Test
     void unsuccessfulGetRequestFolderTest() {
         HttpRequest request = HttpRequest.newBuilder()
-                                .uri(URI.create(baseURL + "src/test/resources/notExisting/"))
+                                .uri(URI.create(baseURL + "192.168.1.198/src/test/resources/notExisting/"))
                                 .version(Version.HTTP_1_1)
                                 .GET()
                                 .build();
@@ -107,7 +115,7 @@ public class ServerTest {
     @Test
     void unsuccessfulGetRequestFileTest() {
         HttpRequest request = HttpRequest.newBuilder()
-                                .uri(URI.create(baseURL + "src/test/resources/notExisting.txt"))
+                                .uri(URI.create(baseURL + "192.168.1.198/src/test/resources/notExisting.txt"))
                                 .header("Content-Type", "text/plain")
                                 .version(Version.HTTP_1_1)
                                 .GET()
