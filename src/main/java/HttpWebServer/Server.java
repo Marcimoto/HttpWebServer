@@ -106,6 +106,7 @@ public class Server {
                 InputStreamReader inReader = new InputStreamReader(in);
                 BufferedReader reader = new BufferedReader(inReader);
                 String line = reader.readLine();
+                System.out.println("REQUEST: " + line);
                 // Reply with a 400 Bad Request, if the request line does not exit
                 if (line == null || line.isEmpty()) {
                     sendBadRequest();
@@ -124,9 +125,8 @@ public class Server {
                 } else {
                     method = request[0].trim();
                     resource = request[1].trim();
-                    if(resource.length() > 1) {
-                        resource = resource.substring(resource.indexOf("/", 1));
-                    }
+                    // Regex is used to filter out the IP address from the requested resource, only IPv4 addresses!
+                    resource = resource.replaceAll("\\b(?:[0-9]{1,3}\\.){3}[0-9]{1,3}\\/\\b", "");
                     httpVersion = request[2].trim();
                 }
                 // Reply with 405 Method Not Allowed, if not a GET or a HEAD request
