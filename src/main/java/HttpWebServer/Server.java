@@ -5,11 +5,10 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
-import java.net.InetAddress;
+import java.io.InputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.file.Files;
-import java.net.UnknownHostException;
 
 /**
  * Creates and starts a BackgroundServer instance in a thread.
@@ -87,15 +86,24 @@ public class Server {
     static class ClientHandler implements Runnable {
 
         private Socket connection;
+        private InputStream in;
+        private OutputStream out;
 
         public ClientHandler(Socket connection) {
             this.connection = connection;
+            try {
+                this.in = connection.getInputStream();
+                this.out = connection.getOutputStream();
+            } catch(IOException e) {
+                // Here: Create a log of the exception and the state of the system
+                e.printStackTrace();
+            }
         }
 
         @Override
         public void run() {
             try {
-                InputStreamReader inReader = new InputStreamReader(connection.getInputStream());
+                InputStreamReader inReader = new InputStreamReader(in);
                 BufferedReader reader = new BufferedReader(inReader);
                 String line = reader.readLine();
                 // Reply with a 400 Bad Request, if the request line does not exit
@@ -194,12 +202,7 @@ public class Server {
                 if (files[i].isDirectory()) {
                   name = "/" + name;
                 }
-                String host = "";
-                try{
-                  host = InetAddress.getLocalHost().getHostAddress();
-                } catch(UnknownHostException e) {
-                  e.printStackTrace();
-                }
+                String host = connection.getLocalAddress().getHostAddress();
                 String path = "http:/" + host + "/" + files[i].getPath();
                 body.append("<li><a href=" + path + ">" + name + "</a></li>\n");
             }
@@ -323,7 +326,6 @@ public class Server {
          * or the socket is not connected
          */
         private void sendResponse(byte[] msg) throws IOException {
-            OutputStream out = connection.getOutputStream();
             out.write(msg);
             out.flush();
             connection.close();
@@ -338,7 +340,6 @@ public class Server {
          * or the socket is not connected
          */
         private void sendResponse(byte[] msgHeader, byte[] msgBody) throws IOException {
-            OutputStream out = connection.getOutputStream();
             out.write(msgHeader);
             out.write(msgBody);
             out.flush();

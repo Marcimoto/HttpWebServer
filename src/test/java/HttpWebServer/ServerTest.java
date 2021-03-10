@@ -52,7 +52,7 @@ public class ServerTest {
     @Test
     void successfulHeadRequestTest() {
         HttpRequest request = HttpRequest.newBuilder()
-                                .uri(URI.create(baseURL + "192.168.1.198/src/test/resources/existing.txt"))
+                                .uri(URI.create(baseURL + "127.0.0.1/src/test/resources/existing.txt"))
                                 .header("Content-Type", "text/plain")
                                 .version(Version.HTTP_1_1)
                                 .method("HEAD", HttpRequest.BodyPublishers.noBody())
@@ -65,7 +65,7 @@ public class ServerTest {
     @Test
     void unsuccessfulHeadRequestTest() {
         HttpRequest request = HttpRequest.newBuilder()
-                                .uri(URI.create(baseURL + "192.168.1.198/src/test/resources/notExisting.txt"))
+                                .uri(URI.create(baseURL + "127.0.0.1/src/test/resources/notExisting.txt"))
                                 .header("Content-Type", "text/plain")
                                 .version(Version.HTTP_1_1)
                                 .method("HEAD", HttpRequest.BodyPublishers.noBody())
@@ -78,7 +78,7 @@ public class ServerTest {
     @Test
     void successfulGetRequestFolderTest() {
         HttpRequest request = HttpRequest.newBuilder()
-                                .uri(URI.create(baseURL + "192.168.1.198/src/test/resources/existing/"))
+                                .uri(URI.create(baseURL + "127.0.0.1/src/test/resources/existing/"))
                                 .version(Version.HTTP_1_1)
                                 .GET()
                                 .build();
@@ -90,7 +90,7 @@ public class ServerTest {
     @Test
     void successfulGetRequestFileTest() {
         HttpRequest request = HttpRequest.newBuilder()
-                                .uri(URI.create(baseURL + "192.168.1.198/src/test/resources/existing.txt"))
+                                .uri(URI.create(baseURL + "127.0.0.1/src/test/resources/existing.txt"))
                                 .header("Content-Type", "text/plain")
                                 .version(Version.HTTP_1_1)
                                 .GET()
@@ -103,7 +103,7 @@ public class ServerTest {
     @Test
     void unsuccessfulGetRequestFolderTest() {
         HttpRequest request = HttpRequest.newBuilder()
-                                .uri(URI.create(baseURL + "192.168.1.198/src/test/resources/notExisting/"))
+                                .uri(URI.create(baseURL + "127.0.0.1/src/test/resources/notExisting/"))
                                 .version(Version.HTTP_1_1)
                                 .GET()
                                 .build();
@@ -115,7 +115,7 @@ public class ServerTest {
     @Test
     void unsuccessfulGetRequestFileTest() {
         HttpRequest request = HttpRequest.newBuilder()
-                                .uri(URI.create(baseURL + "192.168.1.198/src/test/resources/notExisting.txt"))
+                                .uri(URI.create(baseURL + "127.0.0.1/src/test/resources/notExisting.txt"))
                                 .header("Content-Type", "text/plain")
                                 .version(Version.HTTP_1_1)
                                 .GET()
