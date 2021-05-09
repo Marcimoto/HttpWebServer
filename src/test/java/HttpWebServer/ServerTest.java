@@ -1,6 +1,7 @@
 package httpwebserver;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.TestInstance.Lifecycle;
 
 import org.junit.jupiter.api.BeforeAll;
@@ -16,7 +17,7 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 
 /**
- * A unit test which tests the basic functionalities of the Server class and its inner classes. 
+ * A unit test which tests the basic functionalities of the Server class.
  */
 @TestInstance(Lifecycle.PER_CLASS)
 public class ServerTest {
