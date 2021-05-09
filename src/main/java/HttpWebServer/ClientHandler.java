@@ -1,6 +1,5 @@
 package httpwebserver;
 
-import java.io.FileReader;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
@@ -42,7 +41,7 @@ public class ClientHandler implements Runnable {
             System.out.println("REQUEST: " + line);
             // Reply with a 400 Bad Request, if the request line does not exit
             if (line == null || line.isEmpty()) {
-                sendBadRequest();
+                sendResponse(FailedResponse.getBadRequestMessage().getBytes());
                 return;
             }
 
@@ -64,14 +63,14 @@ public class ClientHandler implements Runnable {
             }
             // Reply with 405 Method Not Allowed, if not a GET or a HEAD request
             if (!method.equals("GET") && !method.equals("HEAD")) {
-                sendMethodNotAllowed(httpVersion);
+                sendResponse(FailedResponse.getMethodNotAllowedMessage(httpVersion).getBytes());
                 return;
             }
 
             File file = new File("." + resource);
             // Reply with 404 File Not Found, if the requested file does not exit
             if (!file.exists()) {
-                sendFileNotFound(httpVersion, file);
+                sendResponse(FailedResponse.getFileNotFoundMessage(httpVersion, file).getBytes());
                 return;
             }
 
@@ -99,7 +98,7 @@ public class ClientHandler implements Runnable {
             // Here: Create a log of the exception and the state of the system
             try {
                 // In case of an exception respond with a 500 Internal Server Error
-                sendServerError();
+                sendResponse(FailedResponse.getServerErrorMessage().getBytes());
             } catch (IOException e1) {
                 e1.printStackTrace();
             }
@@ -164,81 +163,6 @@ public class ClientHandler implements Runnable {
         header.append("Content-Disposition: inline; filename=\"" + file.getName() + "\"\n");
         header.append("\n");
         return header.toString().getBytes();
-    }
-
-    /**
-     * Sends a "405 Method Not Allowed" HTTP response.
-     * The content of the message is a HTML document which represents the error.
-     *
-     * @param httpVersion The HTTP version of the request.
-     * @throws Throws an IOException if an I/O error occurs when sending the HTTP response.
-     */
-    private void sendMethodNotAllowed(String httpVersion) throws IOException {
-        StringBuilder msg = new StringBuilder();
-        msg.append(httpVersion + " 405 Method Not Allowed\n");
-        msg.append("Server: Simple HTTP web server\n");
-        msg.append("Content-Type: text/html; charset=utf-8\n");
-        msg.append("Allow: GET, HEAD\n");
-        msg.append("\n");
-        BufferedReader reader = new BufferedReader(new FileReader("./src/main/java/httpwebserver/resources/405.html"));
-        reader.lines().forEach(line -> msg.append(line));
-        reader.close();
-        msg.append("\n");
-        sendResponse(msg.toString().getBytes());
-    }
-
-    /**
-     * Sends a "404 File Not Found" HTTP response.
-     * The content of the message is a HTML document which represents the error.
-     *
-     * @param httpVersion The HTTP version of the request.
-     * @param file The requested file.
-     * @throws Throws an IOException if an I/O error occurs when sending the HTTP response.
-     */
-    private void sendFileNotFound(String httpVersion, File file) throws IOException {
-        StringBuilder msg = new StringBuilder();
-        msg.append(httpVersion + " 404 Not found\n");
-        msg.append("Server: Simple HTTP web server\n");
-        msg.append("Content-Type: text/html; charset=utf-8\n");
-        msg.append("Content-Disposition: inline; filename=\"" + file.getName() + "\"\n");
-        msg.append("\n");
-
-        msg.append("\n");
-        sendResponse(msg.toString().getBytes());
-    }
-
-    /**
-     * Sends a "500 Internal Server Error" HTTP response.
-     * The content of the message is a HTML document which represents the error.
-     *
-     * @throws Throws an IOException if an I/O error occurs when sending the HTTP response.
-     */
-    private void sendServerError() throws IOException {
-        StringBuilder msg = new StringBuilder();
-        msg.append("HTTP/1.1 500 Internal Server Error\n");
-        msg.append("Server: Simple HTTP web server\n");
-        msg.append("Content-Type: text/html; charset=utf-8\n");
-        msg.append("\n");
-
-        msg.append("\n");
-        sendResponse(msg.toString().getBytes());
-    }
-
-    /**
-     * Sends a "400 Bad Request" HTTP response.
-     * The content of the message is a HTML document which represents the error.
-     *
-     * @throws Throws an IOException if an I/O error occurs when sending the HTTP response.
-     */
-    private void sendBadRequest() throws IOException {
-        StringBuilder msg = new StringBuilder();
-        msg.append("HTTP/1.1 400 Bad Request\n");
-        msg.append("Server: Simple HTTP web server\n");
-        msg.append("Content-Type: text/html; charset=utf-8\n");
-        msg.append("\n");
-
-        msg.append("\n");
-        sendResponse(msg.toString().getBytes());
     }
 
     /**
