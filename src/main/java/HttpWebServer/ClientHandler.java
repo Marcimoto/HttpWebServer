@@ -41,7 +41,7 @@ public class ClientHandler implements Runnable {
             System.out.println("REQUEST: " + line);
             // Reply with a 400 Bad Request, if the request line does not exit
             if (line == null || line.isEmpty()) {
-                sendResponse(FailedResponse.getBadRequestMessage().getBytes());
+                // sendResponse(FailedResponse.getBadRequestMessage().getBytes());
                 return;
             }
 
@@ -63,7 +63,7 @@ public class ClientHandler implements Runnable {
             }
             // Reply with 405 Method Not Allowed, if not a GET or a HEAD request
             if (!method.equals("GET") && !method.equals("HEAD")) {
-                sendResponse(FailedResponse.getMethodNotAllowedMessage(httpVersion).getBytes());
+                //sendResponse(FailedResponse.getMethodNotAllowedMessage(httpVersion).getBytes());
                 return;
             }
 
@@ -96,12 +96,12 @@ public class ClientHandler implements Runnable {
             }
         } catch (IOException e) {
             // Here: Create a log of the exception and the state of the system
-            try {
-                // In case of an exception respond with a 500 Internal Server Error
-                sendResponse(FailedResponse.getServerErrorMessage().getBytes());
-            } catch (IOException e1) {
-                e1.printStackTrace();
-            }
+            // try {
+            //     // In case of an exception respond with a 500 Internal Server Error
+            //     //sendResponse(FailedResponse.getServerErrorMessage().getBytes());
+            // } catch (IOException e1) {
+            //     e1.printStackTrace();
+            // }
             e.printStackTrace();
         } finally {
             try {

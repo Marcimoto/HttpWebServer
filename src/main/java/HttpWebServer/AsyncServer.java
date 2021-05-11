@@ -13,6 +13,7 @@ import java.io.IOException;
 public class AsyncServer implements Runnable {
 
     private int port;
+    private ServerSocket serverSocket;
 
     public AsyncServer(int port) {
         this.port = port;
@@ -20,26 +21,20 @@ public class AsyncServer implements Runnable {
 
     @Override
     public void run() {
-
-        ServerSocket serverSocket = null;
-
         try {
-            serverSocket = new ServerSocket(port);
-            while (true) {
-                System.out.println("Server is listening for requests...");
-                Socket connection = serverSocket.accept();
-                new Thread(new ClientHandler(connection)).start();
-            }
+            executeServer();
         } catch (IOException e) {
             // Here: Create a log of the exception and the state of the system -> IMPLEMENT IT!
             e.printStackTrace();
-        } finally {
-            try {
-                serverSocket.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+        } 
+    }
+
+    private void executeServer() throws IOException {
+        serverSocket = new ServerSocket(port);
+        while (true) {
+            System.out.println("Server is listening for requests...");
+            Socket connection = serverSocket.accept();
+            new Thread(new ClientHandler(connection)).start();
         }
     }
-   
 }

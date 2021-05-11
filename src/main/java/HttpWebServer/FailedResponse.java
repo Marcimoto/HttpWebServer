@@ -1,8 +1,6 @@
 package httpwebserver;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
 
 /**
@@ -26,7 +24,8 @@ public class FailedResponse {
         msg.append("Content-Type: text/html; charset=utf-8\n");
         msg.append("Allow: GET, HEAD\n");
         msg.append("\n");
-        msg.append(getResponseMessage(405));
+        HtmlFile htmlFile = new HtmlFile(405);
+        msg.append(htmlFile.getHtmlPageContent());
         msg.append("\n");
         return msg.toString();
     }
@@ -46,7 +45,8 @@ public class FailedResponse {
         msg.append("Content-Type: text/html; charset=utf-8\n");
         msg.append("Content-Disposition: inline; filename=\"" + file.getName() + "\"\n");
         msg.append("\n");
-        msg.append(getResponseMessage(404));
+        HtmlFile htmlFile = new HtmlFile(404);
+        msg.append(htmlFile.getHtmlPageContent());
         msg.append("\n");
         return msg.toString();
     }
@@ -63,7 +63,8 @@ public class FailedResponse {
         msg.append("Server: Simple HTTP web server\n");
         msg.append("Content-Type: text/html; charset=utf-8\n");
         msg.append("\n");
-        msg.append(getResponseMessage(500));
+        HtmlFile htmlFile = new HtmlFile(500);
+        msg.append(htmlFile.getHtmlPageContent());
         msg.append("\n");
         return msg.toString();
     }
@@ -80,20 +81,9 @@ public class FailedResponse {
         msg.append("Server: Simple HTTP web server\n");
         msg.append("Content-Type: text/html; charset=utf-8\n");
         msg.append("\n");
-        msg.append(getResponseMessage(400));
+        HtmlFile htmlFile = new HtmlFile(400);
+        msg.append(htmlFile.getHtmlPageContent());
         msg.append("\n");
-        return msg.toString();
-    }
-
-    private static String getResponseMessage(int httpResponseStatusCode) throws IOException {
-        return readHtmlFile(httpResponseStatusCode);
-    }
-
-    private static String readHtmlFile(int httpResponseStatusCode) throws IOException {
-        StringBuilder msg = new StringBuilder();
-        BufferedReader reader = new BufferedReader(new FileReader("./src/main/java/httpwebserver/resources/" + httpResponseStatusCode + ".html"));
-        reader.lines().forEach(line -> msg.append(line));
-        reader.close();
         return msg.toString();
     }
 }

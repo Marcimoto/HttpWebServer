@@ -1,7 +1,6 @@
 package httpwebserver;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.TestInstance.Lifecycle;
 
 import org.junit.jupiter.api.BeforeAll;
