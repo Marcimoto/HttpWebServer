@@ -41,7 +41,7 @@ public class ClientHandler implements Runnable {
             System.out.println("REQUEST: " + line);
             // Reply with a 400 Bad Request, if the request line does not exit
             if (line == null || line.isEmpty()) {
-                // sendResponse(FailedResponse.getBadRequestMessage().getBytes());
+                sendResponse(FailedResponse.getBadRequestMessage().getBytes());
                 return;
             }
 
@@ -63,7 +63,7 @@ public class ClientHandler implements Runnable {
             }
             // Reply with 405 Method Not Allowed, if not a GET or a HEAD request
             if (!method.equals("GET") && !method.equals("HEAD")) {
-                //sendResponse(FailedResponse.getMethodNotAllowedMessage(httpVersion).getBytes());
+                sendResponse(FailedResponse.getMethodNotAllowedMessage(httpVersion).getBytes());
                 return;
             }
 
@@ -76,6 +76,7 @@ public class ClientHandler implements Runnable {
 
             // Process the request, check if a file or a directory is requested
             byte[] msgBody = null;
+            ResponseMessage responseMessage = new ResponseMessage(connection); 
             if (file.isFile()) {
                 msgBody = Files.readAllBytes(file.toPath());
             } else if (file.isDirectory()) {
@@ -110,59 +111,6 @@ public class ClientHandler implements Runnable {
                 e1.printStackTrace();
             }
         }
-    }
-
-    /**
-     * Retrieves the content of the directory and builds a HTML document from it.
-     *
-     * @param directory The directory specified in the http request.
-     * @return Returns a byte array which represents the HTML document.
-     */
-    private byte[] getDirectoryContent(File directory) {
-        StringBuilder body = new StringBuilder();
-        body.append("<!DOCTYPE html>\n");
-        body.append("<html>\n");
-        body.append("<head>\n");
-        body.append("<title>Simple Web Server</title>");
-        body.append("</head>\n");
-        body.append("<body>\n");
-        body.append("<h1>Simple Web Server</h1>");
-
-        File[] files = directory.listFiles();
-        for (int i = 0; i < files.length; i++) {
-            String name = files[i].getName();
-            if (files[i].isDirectory()) {
-                name = "/" + name;
-            }
-            String host = connection.getLocalAddress().getHostAddress();
-            String path = "http:/" + host + "/" + files[i].getPath();
-            body.append("<li><a href=" + path + ">" + name + "</a></li>\n");
-        }
-
-        body.append("</body>\n");
-        body.append("</html>\n");
-        body.append("\n");
-        return body.toString().getBytes();
-    }
-
-    /**
-     * Computes the header of the HTTP response message.
-     *
-     * @param httpVersion The HTTP version of the request.
-     * @param file The requested file.
-     * @param msgBody The body of the response message as byte array.
-     * @return Returns a byte array which represents the header of the HTTP response.
-     * @throws Throws an IOException if an I/O error occurs when reading the file.
-     */
-    private byte[] getResponseHeader(String httpVersion, File file, byte[] msgBody) throws IOException {
-        StringBuilder header = new StringBuilder();
-        header.append(httpVersion + " 200 OK\n");
-        header.append("Server: Simple HTTP web server\n");
-        header.append("Content-Type: " + Files.probeContentType(file.toPath()) + "; charset=utf-8\n");
-        header.append("Content-Length: " + (msgBody.equals(null) ? 0 : msgBody.length) + "\n");
-        header.append("Content-Disposition: inline; filename=\"" + file.getName() + "\"\n");
-        header.append("\n");
-        return header.toString().getBytes();
     }
 
     /**

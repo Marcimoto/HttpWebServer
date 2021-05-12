@@ -8,20 +8,25 @@ import java.io.BufferedReader;
 public class HtmlFile {
 
     private InputStream in;
+    private String htmlPage;
 
     public HtmlFile(int httpResponseStatusCode) {
-        System.out.println(httpResponseStatusCode + ".html");
         this.in = HtmlFile.class.getClassLoader().getResourceAsStream(httpResponseStatusCode + ".html");
+        loadHtmlPage();
     }
+
+    public String getHtmlPage() {
+        return this.htmlPage;
+    } 
     
-    public String getHtmlPageContent() {
+    private void loadHtmlPage() {
         String content = "";
         try {
             content = readHtmlFile();
         } catch(IOException e) {
             e.printStackTrace();
         }
-        return content;
+        this.htmlPage = content;
     }
 
     private String readHtmlFile() throws IOException {

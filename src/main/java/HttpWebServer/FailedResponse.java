@@ -25,7 +25,7 @@ public class FailedResponse {
         msg.append("Allow: GET, HEAD\n");
         msg.append("\n");
         HtmlFile htmlFile = new HtmlFile(405);
-        msg.append(htmlFile.getHtmlPageContent());
+        msg.append(htmlFile.getHtmlPage());
         msg.append("\n");
         return msg.toString();
     }
@@ -46,7 +46,7 @@ public class FailedResponse {
         msg.append("Content-Disposition: inline; filename=\"" + file.getName() + "\"\n");
         msg.append("\n");
         HtmlFile htmlFile = new HtmlFile(404);
-        msg.append(htmlFile.getHtmlPageContent());
+        msg.append(htmlFile.getHtmlPage());
         msg.append("\n");
         return msg.toString();
     }
@@ -64,7 +64,7 @@ public class FailedResponse {
         msg.append("Content-Type: text/html; charset=utf-8\n");
         msg.append("\n");
         HtmlFile htmlFile = new HtmlFile(500);
-        msg.append(htmlFile.getHtmlPageContent());
+        msg.append(htmlFile.getHtmlPage());
         msg.append("\n");
         return msg.toString();
     }
@@ -82,7 +82,7 @@ public class FailedResponse {
         msg.append("Content-Type: text/html; charset=utf-8\n");
         msg.append("\n");
         HtmlFile htmlFile = new HtmlFile(400);
-        msg.append(htmlFile.getHtmlPageContent());
+        msg.append(htmlFile.getHtmlPage());
         msg.append("\n");
         return msg.toString();
     }
