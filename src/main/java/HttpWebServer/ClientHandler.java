@@ -7,7 +7,6 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.InputStream;
 import java.net.Socket;
-import java.nio.file.Files;
 
 /**
  * ClientHandler processes a client request. Instances of
@@ -75,23 +74,21 @@ public class ClientHandler implements Runnable {
             }
 
             // Process the request, check if a file or a directory is requested
-            byte[] msgBody = null;
+            byte[] message = null;
             ResponseMessage responseMessage = new ResponseMessage(connection); 
             if (file.isFile()) {
-                msgBody = Files.readAllBytes(file.toPath());
+                message = responseMessage.getFileResponseMessage(httpVersion, file);
             } else if (file.isDirectory()) {
-                msgBody = getDirectoryContent(file);
+                message = responseMessage.getDirectoryResponseMessage(httpVersion, file);
             }
-
-            byte[] msgHeader = getResponseHeader(httpVersion, file, msgBody);
 
             // Send the HTTP response message, it can be extended with cases for POST, PUT...
             switch (method) {
                 case "GET":
-                    sendResponse(msgHeader, msgBody);
+                    sendResponse(message);
                     break;
                 case "HEAD":
-                    sendResponse(msgHeader);
+                    sendResponse(message);
                     break;
                 default:
             }
@@ -122,21 +119,6 @@ public class ClientHandler implements Runnable {
      */
     private void sendResponse(byte[] msg) throws IOException {
         out.write(msg);
-        out.flush();
-        connection.close();
-    }
-
-    /**
-     * Sends the response message to the client.
-     *
-     * @param msgHeader The header of message to be send.
-     * @param msgBody The body of message to be send.
-     * @throws Throws an IOException in case an error occurs when creating the output stream
-     * or the socket is not connected
-     */
-    private void sendResponse(byte[] msgHeader, byte[] msgBody) throws IOException {
-        out.write(msgHeader);
-        out.write(msgBody);
         out.flush();
         connection.close();
     }

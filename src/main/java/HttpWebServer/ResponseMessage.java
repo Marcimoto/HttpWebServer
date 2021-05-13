@@ -13,14 +13,16 @@ public class ResponseMessage {
         this.connection = connection;
     }
 
-    public byte[] getFileResponseMessage(String httpVersion, File file, byte[] msgBody) throws IOException {
-
-        return ResponseHeader.getResponseHeader(httpVersion, file, msgBody);
+    public byte[] getFileResponseMessage(String httpVersion, File file) throws IOException {
+        byte[] body = ResponseBody.getFileContent(file);
+        byte[] header = ResponseHeader.getResponseHeader(httpVersion, file, body);
+        byte[] httpMessage = ArrayUtils.addAll(header, body);
+        return httpMessage;
     }
 
-    public byte[] getDirectoryResponseMessage(String httpVersion, File file, byte[] msgBody) throws IOException {
+    public byte[] getDirectoryResponseMessage(String httpVersion, File file) throws IOException {
         byte[] body = ResponseBody.getDirectoryContent(file, connection);
-        byte[] header = ResponseHeader.getResponseHeader(httpVersion, file, msgBody);
+        byte[] header = ResponseHeader.getResponseHeader(httpVersion, file, body);
         byte[] httpMessage = ArrayUtils.addAll(header, body);
         return httpMessage;
     }

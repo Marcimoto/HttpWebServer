@@ -17,12 +17,17 @@ public class ResponseHeader {
      */
     public static byte[] getResponseHeader(String httpVersion, File file, byte[] msgBody) throws IOException {
         StringBuilder header = new StringBuilder();
+        String fileName = file.getName();
+        String contentType = Files.probeContentType(file.toPath());
+        int contentLength = msgBody.equals(null) ? 0 : msgBody.length;
+
         header.append(httpVersion + " 200 OK\n");
         header.append("Server: Simple HTTP web server\n");
-        header.append("Content-Type: " + Files.probeContentType(file.toPath()) + "; charset=utf-8\n");
-        header.append("Content-Length: " + (msgBody.equals(null) ? 0 : msgBody.length) + "\n");
-        header.append("Content-Disposition: inline; filename=\"" + file.getName() + "\"\n");
+        header.append("Content-Type: " + contentType + "; charset=utf-8\n");
+        header.append("Content-Length: " + contentLength + "\n");
+        header.append("Content-Disposition: inline; filename=\"" + fileName + "\"\n");
         header.append("\n");
+        
         return header.toString().getBytes();
     }
 }
