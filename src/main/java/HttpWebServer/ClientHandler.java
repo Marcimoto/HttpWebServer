@@ -19,7 +19,8 @@ public class ClientHandler implements Runnable {
     private Socket connection;
     private InputStream in;
     private OutputStream out;
-    private Request request;
+    private RequestMessage request;
+    private File requestedFile;
 
     public ClientHandler(Socket connection) {
         this.connection = connection;
@@ -35,39 +36,8 @@ public class ClientHandler implements Runnable {
     @Override
     public void run() {
         try {
-            InputStreamReader inReader = new InputStreamReader(in);
-            BufferedReader reader = new BufferedReader(inReader);
-            String line = reader.readLine();
-            System.out.println("REQUEST: " + line);
-            // Reply with a 400 Bad Request, if the request line does not exit
-            if (line == null || line.isEmpty()) {
-                sendResponse(FailedResponse.getBadRequestMessage().getBytes());
-                return;
-            }
-
-            this.request = new Request(line);
-            if (!methodAllowed()) {
-                sendResponse(FailedResponse.getMethodNotAllowedMessage(request.getHttpVersion()).getBytes());
-                return;
-            }
-
-            if(!request.requestedFileExists()) {
-                sendResponse(FailedResponse.getFileNotFoundMessage(request.getHttpVersion(), request.getResource()).getBytes());
-                return;
-            }
-
-            byte[] message = getResponseMessage(file);
-            
-            // Send the HTTP response message, it can be extended with cases for POST, PUT...
-            switch (method) {
-                case "GET":
-                    sendResponse(message);
-                    break;
-                case "HEAD":
-                    sendResponse(message);
-                    break;
-                default:
-            }
+            setRequest(readInRequest());
+            processRequest();
         } catch (IOException e) {
             // Here: Create a log of the exception and the state of the system
             // try {
@@ -86,18 +56,61 @@ public class ClientHandler implements Runnable {
         }
     }
 
+    private String readInRequest() throws IOException {
+        InputStreamReader inReader = new InputStreamReader(in);
+        BufferedReader reader = new BufferedReader(inReader);
+        String request = reader.readLine();
+        System.out.println("REQUEST: " + request);
+        return request;
+    }
+
+    private void setRequest(String input) throws IOException {
+        if (isBadRequest(input)) {
+            sendResponse(FailedResponse.getBadRequestMessage().getBytes());
+            System.exit(0);
+        } else {
+            this.request = new RequestMessage(input);
+        }
+    }
+
+    private void processRequest() throws IOException {
+        checkIsMethodAllowed();
+        setRequestedFile();
+        byte[] message = getResponseMessage();
+        sendResponse(message);
+    }
+
+    private boolean isBadRequest(String line) {
+        return (line == null || line.isEmpty());
+    }
+
+    private void checkIsMethodAllowed() throws IOException {
+        if (!methodAllowed()) {
+            sendResponse(FailedResponse.getMethodNotAllowedMessage(request.getHttpVersion()).getBytes());
+            System.exit(0);;
+        }
+    }
+
     private boolean methodAllowed() throws IOException {
         String method = request.getMethod();
         return (method.equals("GET") || method.equals("HEAD"));
     }
 
-    private byte[] getResponseMessage(File file) throws IOException {
+    private void setRequestedFile() throws IOException {
+        this.requestedFile = new File("." + request.getResource());
+        if(requestedFile.exists()) {
+            sendResponse(FailedResponse.getFileNotFoundMessage(request.getHttpVersion(), request.getResource()).getBytes());
+            System.exit(0);
+        }
+    }
+
+    private byte[] getResponseMessage() throws IOException {
         ResponseMessage responseMessage = new ResponseMessage(connection); 
         byte[] message = null;
-        if (file.isFile()) {
-            message = responseMessage.getFileResponseMessage(request.getHttpVersion(), file);
-        } else if (file.isDirectory()) {
-            message = responseMessage.getDirectoryResponseMessage(request.getHttpVersion(), file);
+        if (requestedFile.isFile()) {
+            message = responseMessage.getFileResponseMessage(request.getHttpVersion(), requestedFile);
+        } else if (requestedFile.isDirectory()) {
+            message = responseMessage.getDirectoryResponseMessage(request.getHttpVersion(), requestedFile);
         }
         return message;
     }
