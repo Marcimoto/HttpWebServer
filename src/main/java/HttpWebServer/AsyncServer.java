@@ -6,7 +6,7 @@ import java.io.IOException;
 
 /**
 * A server instance which runs in a thread.
-* BackgroundServer itself creates and starts a new thread for each client request.
+* AsyncServer itself creates and starts a new thread for each client request.
 *
 * @param port The port on which the server will listen for requests.
 */

@@ -4,8 +4,6 @@ import java.io.File;
 import java.io.IOException;
 
 /**
- * Defines failed HTTP Response messages.
- * 
  * @author Marcel Unkauf
  */
 public class FailedResponse {
@@ -38,12 +36,12 @@ public class FailedResponse {
      * @param file The requested file.
      * @throws Throws an IOException if an I/O error occurs when sending the HTTP response.
      */
-    public static String getFileNotFoundMessage(String httpVersion, File file) throws IOException {
+    public static String getFileNotFoundMessage(String httpVersion, String resourceName) throws IOException {
         StringBuilder msg = new StringBuilder();
         msg.append(httpVersion + " 404 Not found\n");
         msg.append("Server: Simple HTTP web server\n");
         msg.append("Content-Type: text/html; charset=utf-8\n");
-        msg.append("Content-Disposition: inline; filename=\"" + file.getName() + "\"\n");
+        msg.append("Content-Disposition: inline; filename=\"" + resourceName + "\"\n");
         msg.append("\n");
         HtmlFile htmlFile = new HtmlFile(404);
         msg.append(htmlFile.getHtmlPage());

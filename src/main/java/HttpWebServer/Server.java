@@ -2,7 +2,7 @@ package httpwebserver;
 
 /**
  * Creates and starts a BackgroundServer instance in a thread.
- * In case no port is specified, the default port is 8080.
+ * In case no port is specified is the default port 8080.
  *
  * @author Marcel Unkauf
  */
@@ -11,7 +11,8 @@ public class Server {
     private int port;
 
     public Server() {
-        this.port = 8080;
+        int defaultPort = 8080;
+        this.port = defaultPort;
         new Thread(new AsyncServer(port)).start();
     }
 

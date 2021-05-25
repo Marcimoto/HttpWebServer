@@ -19,6 +19,7 @@ public class ClientHandler implements Runnable {
     private Socket connection;
     private InputStream in;
     private OutputStream out;
+    private Request request;
 
     public ClientHandler(Socket connection) {
         this.connection = connection;
@@ -44,44 +45,19 @@ public class ClientHandler implements Runnable {
                 return;
             }
 
-            String[] request = line.split(" ");
-            String method = "";
-            String resource = "";
-            String httpVersion = "";
-            // Reply with default HTTP response, if the request line is not well formatted
-            if (request.length != 3) {
-                method = "GET";
-                resource = "/";
-                httpVersion = "HTTP/1.1";
-            } else {
-                method = request[0].trim();
-                resource = request[1].trim();
-                // Regex is used to filter out the IP address from the requested resource, only IPv4 addresses!
-                resource = resource.replaceAll("\\b(?:[0-9]{1,3}\\.){3}[0-9]{1,3}\\/\\b", "");
-                httpVersion = request[2].trim();
-            }
-            // Reply with 405 Method Not Allowed, if not a GET or a HEAD request
-            if (!method.equals("GET") && !method.equals("HEAD")) {
-                sendResponse(FailedResponse.getMethodNotAllowedMessage(httpVersion).getBytes());
+            this.request = new Request(line);
+            if (!methodAllowed()) {
+                sendResponse(FailedResponse.getMethodNotAllowedMessage(request.getHttpVersion()).getBytes());
                 return;
             }
 
-            File file = new File("." + resource);
-            // Reply with 404 File Not Found, if the requested file does not exit
-            if (!file.exists()) {
-                sendResponse(FailedResponse.getFileNotFoundMessage(httpVersion, file).getBytes());
+            if(!request.requestedFileExists()) {
+                sendResponse(FailedResponse.getFileNotFoundMessage(request.getHttpVersion(), request.getResource()).getBytes());
                 return;
             }
 
-            // Process the request, check if a file or a directory is requested
-            byte[] message = null;
-            ResponseMessage responseMessage = new ResponseMessage(connection); 
-            if (file.isFile()) {
-                message = responseMessage.getFileResponseMessage(httpVersion, file);
-            } else if (file.isDirectory()) {
-                message = responseMessage.getDirectoryResponseMessage(httpVersion, file);
-            }
-
+            byte[] message = getResponseMessage(file);
+            
             // Send the HTTP response message, it can be extended with cases for POST, PUT...
             switch (method) {
                 case "GET":
@@ -110,13 +86,22 @@ public class ClientHandler implements Runnable {
         }
     }
 
-    /**
-     * Sends the response message to the client.
-     *
-     * @param msg The message to be send.
-     * @throws Throws an IOException in case an error occurs when creating the output stream
-     * or the socket is not connected
-     */
+    private boolean methodAllowed() throws IOException {
+        String method = request.getMethod();
+        return (method.equals("GET") || method.equals("HEAD"));
+    }
+
+    private byte[] getResponseMessage(File file) throws IOException {
+        ResponseMessage responseMessage = new ResponseMessage(connection); 
+        byte[] message = null;
+        if (file.isFile()) {
+            message = responseMessage.getFileResponseMessage(request.getHttpVersion(), file);
+        } else if (file.isDirectory()) {
+            message = responseMessage.getDirectoryResponseMessage(request.getHttpVersion(), file);
+        }
+        return message;
+    }
+
     private void sendResponse(byte[] msg) throws IOException {
         out.write(msg);
         out.flush();
