@@ -47,12 +47,11 @@ public class ClientHandler implements Runnable {
             //     e1.printStackTrace();
             // }
             e.printStackTrace();
+        } 
+        catch (Exception e) { //Define your own Exception
+            e.printStackTrace();
         } finally {
-            try {
-                connection.close();
-            } catch (IOException e1) {
-                e1.printStackTrace();
-            }
+            closeConnection();
         }
     }
 
@@ -64,16 +63,16 @@ public class ClientHandler implements Runnable {
         return request;
     }
 
-    private void setRequest(String input) throws IOException {
+    private void setRequest(String input) throws IOException, Exception {
         if (isBadRequest(input)) {
             sendResponse(FailedResponse.getBadRequestMessage().getBytes());
-            System.exit(0);
+            throw new Exception();
         } else {
             this.request = new RequestMessage(input);
         }
     }
 
-    private void processRequest() throws IOException {
+    private void processRequest() throws IOException, Exception {
         checkIsMethodAllowed();
         setRequestedFile();
         byte[] message = getResponseMessage();
@@ -84,10 +83,10 @@ public class ClientHandler implements Runnable {
         return (line == null || line.isEmpty());
     }
 
-    private void checkIsMethodAllowed() throws IOException {
+    private void checkIsMethodAllowed() throws IOException, Exception {
         if (!methodAllowed()) {
             sendResponse(FailedResponse.getMethodNotAllowedMessage(request.getHttpVersion()).getBytes());
-            System.exit(0);;
+            throw new Exception();
         }
     }
 
@@ -96,11 +95,11 @@ public class ClientHandler implements Runnable {
         return (method.equals("GET") || method.equals("HEAD"));
     }
 
-    private void setRequestedFile() throws IOException {
+    private void setRequestedFile() throws IOException, Exception {
         this.requestedFile = new File("." + request.getResource());
         if(requestedFile.exists()) {
             sendResponse(FailedResponse.getFileNotFoundMessage(request.getHttpVersion(), request.getResource()).getBytes());
-            System.exit(0);
+            throw new Exception();
         }
     }
 
@@ -119,5 +118,13 @@ public class ClientHandler implements Runnable {
         out.write(msg);
         out.flush();
         connection.close();
+    }
+
+    private void closeConnection() {
+        try {
+            connection.close();
+        } catch (IOException e1) {
+            e1.printStackTrace();
+        }
     }
 }
