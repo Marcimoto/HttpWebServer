@@ -10,7 +10,7 @@ public class Server {
 
     private int port;
 
-    public Server() {
+    public Server() {   // Think about using a Threadpool!
         int defaultPort = 8080;
         this.port = defaultPort;
         new Thread(new AsyncServer(port)).start();

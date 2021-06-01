@@ -7,7 +7,7 @@ import java.nio.file.Files;
 public class ResponseHeader {
 
     /**
-     * Computes the header of the HTTP response message.
+     * Computes a header of the HTTP response message.
      *
      * @param httpVersion The HTTP version of the request.
      * @param file The requested file.

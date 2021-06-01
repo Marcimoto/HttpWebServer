@@ -33,6 +33,12 @@ public class ClientHandler implements Runnable {
         }
     }
 
+    /**
+     * Handles a HTTP request in a thread. To do so the class:
+     * Reads in the request message
+     * Processes this message
+     * Returns a response to the caller
+     */
     @Override
     public void run() {
         try {
