@@ -81,24 +81,21 @@ public class ClientHandler implements Runnable {
     }
 
     private void checkIsMethodAllowed() throws IOException, MethodNotAllowedException {
-        if (!methodAllowed()) {
-            sendResponse(FailedResponse.getMethodNotAllowedMessage(request.getHttpVersion()).getBytes());
-            throw new MethodNotAllowedException("Method is not allowed");
-        }
-    }
-
-    private boolean methodAllowed() {
         Method method = request.getMethod();
-        return (method.equals(Method.GET) || method.equals(Method.HEAD));
+        if (!(method.equals(Method.GET) || method.equals(Method.HEAD))) {
+            sendResponse(FailedResponse.getMethodNotAllowedMessage(request.getHttpVersion()).getBytes());
+            throw new MethodNotAllowedException(method + " is not allowed");
+        }
     }
 
     private File setRequestedFile() throws IOException, FileNotFoundException {
         File requestedFile = new File("." + request.getResource());
         if(requestedFile.exists()) {
+            System.out.println("Requested file: " + requestedFile);
             return requestedFile;
         } else {
             sendResponse(FailedResponse.getFileNotFoundMessage(request.getHttpVersion(), request.getResource()).getBytes());
-            throw new FileNotFoundException("Requested file not found");
+            throw new FileNotFoundException(requestedFile + " not found");
         }
     }
 

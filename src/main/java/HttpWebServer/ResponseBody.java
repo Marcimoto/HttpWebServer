@@ -39,12 +39,12 @@ public class ResponseBody {
         String host = connection.getLocalAddress().getHostAddress();
         File[] files = directory.listFiles();
         for (int i = 0; i < files.length; i++) {
-            content.append(getFilesContent(files[i], host));
+            content.append(getFileContent(files[i], host));
         }
         return content.toString();
     }
 
-    private static String getFilesContent(File file, String host) {        
+    private static String getFileContent(File file, String host) {        
         String name = file.getName();
         if (file.isDirectory()) {
             name = "/" + name;

@@ -35,7 +35,7 @@ public class RequestMessage {
 
     private String filterOutIPAddress(String resource) {
         // Filter out the IP address from the requested resource, only IPv4 addresses!
-        return resource.replaceAll("\\b(?:[0-9]{1,3}\\.){3}[0-9]{1,3}\\/\\b", "");
+        return resource.replaceAll("/(\\/(?:[0-9]{1,3}\\.){3}[0-9]{1,3})", "");
     }
 
     private void setDefaultRequest() {
