@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.InputStream;
+import java.io.FileNotFoundException;
 import java.net.Socket;
 
 /**
@@ -20,7 +21,6 @@ public class ClientHandler implements Runnable {
     private InputStream in;
     private OutputStream out;
     private RequestMessage request;
-    private File requestedFile;
 
     public ClientHandler(Socket connection) {
         this.connection = connection;
@@ -36,20 +36,17 @@ public class ClientHandler implements Runnable {
     @Override
     public void run() {
         try {
-            setRequest(readInRequest());
+            String request = readInRequest();
+            setRequest(request);
             processRequest();
-        } catch (IOException e) {
-            // Here: Create a log of the exception and the state of the system
-            // try {
-            //     // In case of an exception respond with a 500 Internal Server Error
-            //     //sendResponse(FailedResponse.getServerErrorMessage().getBytes());
-            // } catch (IOException e1) {
-            //     e1.printStackTrace();
-            // }
-            e.printStackTrace();
-        } 
-        catch (Exception e) { //Define your own Exception
-            e.printStackTrace();
+        } catch (BadRequestException errorMessage) {        //think about logging stuff
+            System.out.println(errorMessage);
+        } catch (MethodNotAllowedException errorMessage) {
+            System.out.println(errorMessage);
+        } catch (FileNotFoundException errorMessage) {
+            System.out.println(errorMessage);  
+        } catch (IOException errorMessage) {
+            errorMessage.printStackTrace();
         } finally {
             closeConnection();
         }
@@ -63,19 +60,19 @@ public class ClientHandler implements Runnable {
         return request;
     }
 
-    private void setRequest(String input) throws IOException, Exception {
-        if (isBadRequest(input)) {
-            sendResponse(FailedResponse.getBadRequestMessage().getBytes());
-            throw new Exception();
-        } else {
+    private void setRequest(String input) throws IOException, BadRequestException {
+        if (!isBadRequest(input)) {
             this.request = new RequestMessage(input);
+        } else {
+            sendResponse(FailedResponse.getBadRequestMessage().getBytes());
+            throw new BadRequestException("Bad request");
         }
     }
 
-    private void processRequest() throws IOException, Exception {
+    private void processRequest() throws IOException, MethodNotAllowedException {
         checkIsMethodAllowed();
-        setRequestedFile();
-        byte[] message = getResponseMessage();
+        File requestedFile = setRequestedFile();
+        byte[] message = getResponseMessage(requestedFile);
         sendResponse(message);
     }
 
@@ -83,27 +80,29 @@ public class ClientHandler implements Runnable {
         return (line == null || line.isEmpty());
     }
 
-    private void checkIsMethodAllowed() throws IOException, Exception {
+    private void checkIsMethodAllowed() throws IOException, MethodNotAllowedException {
         if (!methodAllowed()) {
             sendResponse(FailedResponse.getMethodNotAllowedMessage(request.getHttpVersion()).getBytes());
-            throw new Exception();
+            throw new MethodNotAllowedException("Method is not allowed");
         }
     }
 
-    private boolean methodAllowed() throws IOException {
+    private boolean methodAllowed() { //Add an ENUM!
         String method = request.getMethod();
         return (method.equals("GET") || method.equals("HEAD"));
     }
 
-    private void setRequestedFile() throws IOException, Exception {
-        this.requestedFile = new File("." + request.getResource());
+    private File setRequestedFile() throws IOException, FileNotFoundException {
+        File requestedFile = new File("." + request.getResource());
         if(requestedFile.exists()) {
+            return requestedFile;
+        } else {
             sendResponse(FailedResponse.getFileNotFoundMessage(request.getHttpVersion(), request.getResource()).getBytes());
-            throw new Exception();
+            throw new FileNotFoundException("Requested file not found");
         }
     }
 
-    private byte[] getResponseMessage() throws IOException {
+    private byte[] getResponseMessage(File requestedFile) throws IOException {
         ResponseMessage responseMessage = new ResponseMessage(connection); 
         byte[] message = null;
         if (requestedFile.isFile()) {
@@ -117,14 +116,13 @@ public class ClientHandler implements Runnable {
     private void sendResponse(byte[] msg) throws IOException {
         out.write(msg);
         out.flush();
-        connection.close();
     }
 
     private void closeConnection() {
         try {
             connection.close();
-        } catch (IOException e1) {
-            e1.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 }

@@ -36,16 +36,20 @@ public class ResponseBody {
 
     private static String readDirectoryContent(File directory, Socket connection) {
         StringBuilder content = new StringBuilder();
-        File[] files = directory.listFiles();
         String host = connection.getLocalAddress().getHostAddress();
+        File[] files = directory.listFiles();
         for (int i = 0; i < files.length; i++) {
-            String name = files[i].getName();
-            if (files[i].isDirectory()) {
-                name = "/" + name;
-            }
-            String path = "http:/" + host + "/" + files[i].getPath();
-            content.append("<li><a href=" + path + ">" + name + "</a></li>\n");
+            content.append(getFilesContent(files[i], host));
         }
         return content.toString();
+    }
+
+    private static String getFilesContent(File file, String host) {        
+        String name = file.getName();
+        if (file.isDirectory()) {
+            name = "/" + name;
+        }
+        String path = "http:/" + host + "/" + file.getPath();
+        return ("<li><a href=" + path + ">" + name + "</a></li>\n");
     }
 }
