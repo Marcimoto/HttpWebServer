@@ -39,7 +39,7 @@ public class ClientHandler implements Runnable {
             String request = readInRequest();
             setRequest(request);
             processRequest();
-        } catch (BadRequestException errorMessage) {        //think about logging stuff
+        } catch (BadRequestException errorMessage) {
             System.out.println(errorMessage);
         } catch (MethodNotAllowedException errorMessage) {
             System.out.println(errorMessage);
@@ -87,9 +87,9 @@ public class ClientHandler implements Runnable {
         }
     }
 
-    private boolean methodAllowed() { //Add an ENUM!
-        String method = request.getMethod();
-        return (method.equals("GET") || method.equals("HEAD"));
+    private boolean methodAllowed() {
+        Method method = request.getMethod();
+        return (method.equals(Method.GET) || method.equals(Method.HEAD));
     }
 
     private File setRequestedFile() throws IOException, FileNotFoundException {
